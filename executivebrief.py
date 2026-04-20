@@ -1284,18 +1284,21 @@ def serve_and_open(path: str, port: int) -> None:
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 def main() -> None:
+    ci = bool(os.environ.get("CI") or os.environ.get("NETLIFY"))
+
     print("=" * 60)
     print("  Jamestown Foundation — Executive Briefing Dashboard")
     print("=" * 60)
     print(f"  Window: last {DAYS} days")
     print(f"  Output: {OUTPUT_FILE}")
+    if ci:
+        print("  Mode:   CI build (no local server)")
     print()
 
     articles = fetch_all_articles(DAYS)
     print("\nClassifying articles…")
     classified = [classify_article(a) for a in articles]
 
-    # Strip heavy full_text before JSON embedding
     for art in classified:
         art.pop("full_text", None)
         art.pop("ts", None)
@@ -1307,7 +1310,8 @@ def main() -> None:
         f.write(html)
     print(f"Saved → {OUTPUT_FILE}")
 
-    serve_and_open(OUTPUT_FILE, PORT)
+    if not ci:
+        serve_and_open(OUTPUT_FILE, PORT)
 
 
 if __name__ == "__main__":

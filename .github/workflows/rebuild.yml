@@ -1,0 +1,42 @@
+name: Rebuild briefing
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"   # every 6 hours
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests feedparser beautifulsoup4
+
+      - name: Rebuild briefing
+        run: python executivebrief.py
+        env:
+          CI: "true"
+
+      - name: Commit updated briefing if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add jf_briefing.html
+          if git diff --cached --quiet; then
+            echo "No changes — skipping commit."
+          else
+            git commit -m "chore: rebuild jf_briefing.html [skip ci]"
+            git push
+          fi
