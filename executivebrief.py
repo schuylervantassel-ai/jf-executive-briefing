@@ -445,7 +445,7 @@ def _extract_brief(text: str, max_sentences: int = 3, max_chars: int = 400) -> s
 def fetch_all_articles(days: int = DAYS) -> list[dict]:
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     if _HAS_CURL_CFFI:
-        session = _curl_requests.Session(impersonate="chrome120")
+        session = _curl_requests.Session(impersonate="chrome124")
     else:
         session = requests.Session()
     session.headers.update(HEADERS)
@@ -464,7 +464,7 @@ def fetch_all_articles(days: int = DAYS) -> list[dict]:
                 resp = session.get(url, timeout=25)
                 resp.raise_for_status()
                 break
-            except requests.RequestException as exc:
+            except Exception as exc:
                 if attempt == 2:
                     print(f"  Warning: page {page} failed ({exc})")
         if resp is None or not resp.ok:
