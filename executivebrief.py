@@ -28,6 +28,12 @@ import requests
 import feedparser
 from bs4 import BeautifulSoup
 
+try:
+    from curl_cffi import requests as _curl_requests
+    _HAS_CURL_CFFI = True
+except ImportError:
+    _HAS_CURL_CFFI = False
+
 # ── Configuration ──────────────────────────────────────────────────────────────
 
 DAYS          = 30
@@ -438,7 +444,10 @@ def _extract_brief(text: str, max_sentences: int = 3, max_chars: int = 400) -> s
 
 def fetch_all_articles(days: int = DAYS) -> list[dict]:
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
-    session = requests.Session()
+    if _HAS_CURL_CFFI:
+        session = _curl_requests.Session(impersonate="chrome120")
+    else:
+        session = requests.Session()
     session.headers.update(HEADERS)
     all_articles: list[dict] = []
     seen_urls: set[str] = set()
